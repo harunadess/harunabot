@@ -159,7 +159,7 @@ public class CoreBot
 
         _client.ExecuteAndWait(async () =>
         {
-            await _client.Connect("",
+            await _client.Connect(token,
                 TokenType.Bot);
         });
     }
