@@ -50,7 +50,20 @@ public class CoreBot
      */
     private void RegisterCommands()
     {
-        //pouts - posts a random pout image
+        RegisterPoutCommand();  //pouts
+        RegisterIdleCommand();  //idling text
+        RegisterPurgeChannelCommand();  //delete messages
+        RegisterOnOfflineCommands();    //targeted hello/bye
+        RegisterHelloCommand(); //server owner hello
+        RegisterByeCommand();   //server owner goodbye
+        RegisterHeartCommand(); //<3
+    }
+
+    /*
+     *  Posts a random pout image from pouts
+     */
+    private void RegisterPoutCommand()
+    {
         commands.CreateCommand("pout")
             .Do(async (e) =>
             {
@@ -59,53 +72,77 @@ public class CoreBot
                 string poutToPost = pouts[randomPoutIndex];
                 await e.Channel.SendFile(poutToPost);
             });
-        
-        //idling text
+    }
+
+    /*
+     *  Posts a random idle message from idleTexts
+     */
+    private void RegisterIdleCommand()
+    {
         commands.CreateCommand("idle")
-           .Do(async (e) =>
-           {
-               int randomIdleIndex = rand.Next(idleTexts.Length);
-               string idleToPost = idleTexts[randomIdleIndex];
+            .Do(async (e) =>
+            {
+                int randomIdleIndex = rand.Next(idleTexts.Length);
+                string idleToPost = idleTexts[randomIdleIndex];
 
-               await e.Channel.SendMessage(idleToPost);
-           });
+                await e.Channel.SendMessage(idleToPost);
+            });
+    }
 
-        //delete messages
+    /*
+     *  Clears all (100) messages from a selected channel
+     */
+     private void RegisterPurgeChannelCommand()
+    {
         commands.CreateCommand("purge")
-          .Do(async (e) =>
-          {
-              Message[] messagesToDelete;
-              messagesToDelete = await e.Channel.DownloadMessages(100);
+            .Do(async (e) =>
+            {
+                Message[] messagesToDelete;
+                messagesToDelete = await e.Channel.DownloadMessages(100);
 
-              await e.Channel.DeleteMessages(messagesToDelete);
-          });
+                await e.Channel.DeleteMessages(messagesToDelete);
+            });
+    }
 
-        //greets server owner
+    /*
+     *  Singular Hello Command
+     */
+    private void RegisterHelloCommand()
+    {
         commands.CreateCommand("hello")
-           .Description("Greets server owner")
-           .Do(async (e) =>
-           {
-               User _user = _client.GetServer(e.Server.Id).GetUser(e.Server.Owner.Id);
-               var name = _user.Nickname != null ? _user.Nickname : _user.Name;
+            .Description("Greets server owner")
+            .Do(async(e) =>
+            {
+                var _userId = _client.GetServer(e.Server.Id).GetUser(e.Server.Owner.Id);
+                var _userName = _userId.Name;
 
-               await e.Channel.SendMessage("hi " + name + " <3");
-           });
+                await e.Channel.SendMessage("hi " + _userName + " <3");
+            });
+    }
 
-        //says bye to server owner
+    /*
+     *  Singular Bye Command
+     */
+    private void RegisterByeCommand()
+    {
         commands.CreateCommand("bye")
-           .Description("Says bye to server owner")
-           .Do(async (e) =>
-           {
-               User _user = _client.GetServer(e.Server.Id).GetUser(e.Server.Owner.Id);
-               var name = _user.Nickname != null ? _user.Nickname : _user.Name;
+            .Description("Says bye to server owner")
+            .Do(async (e) =>
+            {
+                User _user = _client.GetServer(e.Server.Id).GetUser(e.Server.Owner.Id);
 
-               await e.Channel.SendMessage("goodbye " + name + " <3");
-           });
+                await e.Channel.SendMessage("goodbye " + _user.Name + " <3");
+            });
+    }
 
-        //targeted hello/goodbye commands
+    /*
+     *  Group of hello x, bye x commands
+     */
+    private void RegisterOnOfflineCommands()
+    {
         commands.CreateGroup("h", cgb =>
         {
-            cgb.CreateCommand("hHello")
+            cgb.CreateCommand("inHello")
             .Alias(new string[] { "hey", "hi" })
             .Description("Greets a person")
             .Parameter("GreetedPerson", ParameterType.Required)
@@ -114,18 +151,33 @@ public class CoreBot
                 await e.Channel.SendMessage("hi " + e.GetArg("GreetedPerson") + " <3");
             });
 
-            cgb.CreateCommand("hBye")
+            cgb.CreateCommand("inBye")
             .Alias(new string[] { "goodbye", "bb" })
             .Description("Says bye to a person")
             .Parameter("PersonToBye", ParameterType.Required)
             .Do(async (e) =>
-            {
+            { 
                 await e.Channel.SendMessage("goodbye " + e.GetArg("PersonToBye") + " <3");
             });
         });
-
     }
 
+    /*
+     *  <3
+     */
+     private void RegisterHeartCommand()
+    {
+        //commands.CreateCommand("<3")
+        //    .Description("sends a <3")
+        //    .Do(async (e) =>
+        //    { 
+        //        await e.Channel.SendMessage("<3");
+        //    });
+        _client.MessageAcknowledged += async (s, e) =>
+        {
+            
+        };
+    }
 
     /*
      *  Util function for logging
