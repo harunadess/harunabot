@@ -16,20 +16,38 @@ public class CoreBot
 
     private string[] pouts;
     private string[] idleTexts;
+    private string[] smugs;
 
     public CoreBot()
     {
-     
+        //random number generator
         rand = new Random();
+
+        //store of pout paths
         pouts = new string[]
         {
-            "pouts/pout1.png",
-            "pouts/pout2.png",
-            "pouts/pout3.png",
-            "pouts/pout4.png",
-            "pouts/pout5.png"
+            "pouts/pout1.png", "pouts/pout2.png",
+            "pouts/pout3.png", "pouts/pout4.png",
+            "pouts/pout5.png", "pouts/pout6.png",
+            "pouts/pout7.png", "pouts/pout8.png",
+            "pouts/pout9.png", "pouts/pout10.gif",
+            "pouts/pout11.gif", "pouts/pout12.png",
+            "pouts/pout13.png"
         };
 
+        //store of smug paths
+        smugs = new string[]
+        {
+            "smugs/smug1.png", "smugs/smug2.png",
+            "smugs/smug3.png", "smugs/smug4.png",
+            "smugs/smug5.png", "smugs/smug6.png",
+            "smugs/smug7.png", "smugs/smug8.png",
+            "smugs/smug9.png", "smugs/smug10.png",
+            "smugs/smug11.png", "smugs/smug12.png",
+            "smugs/smug13.png",
+        };
+
+        //store of idle texts 
         idleTexts = new string[]
         {
             "Yes, if you're fine with Haruna, I'll be your partner any time.",
@@ -39,10 +57,6 @@ public class CoreBot
             "Daijoubou Desu!"
         };
 
-        commands = _client.GetService<CommandService>();
-
-        //register commands here
-        RegisterCommands();
 	}
 
     /*
@@ -54,11 +68,23 @@ public class CoreBot
         commands.CreateCommand("pout")
             .Do(async (e) =>
             {
-
                 int randomPoutIndex = rand.Next(pouts.Length);
                 string poutToPost = pouts[randomPoutIndex];
+
                 await e.Channel.SendFile(poutToPost);
             });
+
+
+        //smugs
+        commands.CreateCommand("smug")
+            .Do(async (e) =>
+            {
+                int randomSmugIndex = rand.Next(smugs.Length);
+                string smugToPost = smugs[randomSmugIndex];
+
+                await e.Channel.SendFile(smugToPost);
+            });
+
 
         //idling text
         commands.CreateCommand("idle")
@@ -70,6 +96,7 @@ public class CoreBot
                 await e.Channel.SendMessage(idleToPost);
             });
 
+
         //delete messages
         commands.CreateCommand("purge")
             .Do(async (e) =>
@@ -79,6 +106,7 @@ public class CoreBot
 
                 await e.Channel.DeleteMessages(messagesToDelete);
             });
+
 
         //targeted hello/bye
         commands.CreateGroup("h", cgb =>
@@ -102,28 +130,65 @@ public class CoreBot
             });
         });
 
+
         //server owner hello
         commands.CreateCommand("hello")
            .Description("Greets server owner")
            .Do(async (e) =>
            {
-               var _userId = _client.GetServer(e.Server.Id).GetUser(e.Server.Owner.Id);
-               var _userName = _userId.Name;
+               User user = _client.GetServer(e.Server.Id).GetUser(e.Server.Owner.Id);
 
-               await e.Channel.SendMessage("hi " + _userName + " <3");
+               await e.Channel.SendMessage("hi " + user.Nickname + " <3");
            });
+
 
         //server owner goodbye
         commands.CreateCommand("bye")
           .Description("Says bye to server owner")
           .Do(async (e) =>
           {
-              User _user = _client.GetServer(e.Server.Id).GetUser(e.Server.Owner.Id);
+              User user = _client.GetServer(e.Server.Id).GetUser(e.Server.Owner.Id);
 
-              await e.Channel.SendMessage("goodbye " + _user.Name + " <3");
+              await e.Channel.SendMessage("goodbye " + user.Nickname + " <3");
           });
 
+
         //<3
+        _client.MessageReceived += async (s, e) =>
+        {
+            string message;
+            if((e.Server.Owner.Id == e.Message.User.Id) && e.Message.RawText.Contains("\\<3"))
+            //if (e.Message.RawText.Contains("\\<3"))
+            {
+                message = "<3";
+
+                await e.Channel.SendMessage(message);
+            }
+        };
+
+
+        //ayy lmao
+        _client.MessageReceived += async (s, e) =>
+        {
+            string message;
+            if(e.Message.RawText.Contains("ayy"))
+            {
+                message = "lmao desu!";
+
+                await e.Channel.SendMessage(message);
+            }
+        };
+
+
+        //dice roll
+        commands.CreateCommand("roll")
+            .Description("rolls a 6 sided dice")
+            .Do(async (e) =>
+            {
+                int roll = rand.Next(6);
+
+                await e.Channel.SendMessage("You rolled a " + roll);
+            });
     }
 
 
@@ -157,9 +222,14 @@ public class CoreBot
             x.HelpMode = HelpMode.Public;
         });
 
+        commands = _client.GetService<CommandService>();
+
+        //register commands
+        RegisterCommands();
+
         _client.ExecuteAndWait(async () =>
         {
-            await _client.Connect(token,
+            await _client.Connect("token",
                 TokenType.Bot);
         });
     }
