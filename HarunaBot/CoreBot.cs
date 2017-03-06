@@ -115,7 +115,7 @@ public class CoreBot
      */
     private void RegisterCommands()
     {
-        //pouts
+        //pout command
         commands.CreateCommand("pout")
             .Do(async (e) =>
             {
@@ -126,7 +126,7 @@ public class CoreBot
             });
 
 
-        //smugs
+        //smug command
         commands.CreateCommand("smug")
             .Do(async (e) =>
             {
@@ -137,7 +137,7 @@ public class CoreBot
             });
 
 
-        //selfies
+        //selfie command
         commands.CreateCommand("selfie")
             .Do(async (e) =>
             {
@@ -148,7 +148,7 @@ public class CoreBot
             });
 
 
-        //idling text
+        //idle text command
         commands.CreateCommand("idle")
             .Do(async (e) =>
             {
@@ -159,7 +159,7 @@ public class CoreBot
             });
 
 
-        //delete messages
+        //delete messages command
         commands.CreateCommand("purge")
             .Do(async (e) =>
             {
@@ -170,7 +170,7 @@ public class CoreBot
             });
 
 
-        //targeted hello/bye
+        //targeted hello/bye, h* group
         commands.CreateGroup("h", cgb =>
         {
             cgb.CreateCommand("inHello")
@@ -193,25 +193,25 @@ public class CoreBot
         });
 
 
-        //server owner hello
+        //server owner hello command
         commands.CreateCommand("hello")
            .Description("Greets server owner")
            .Do(async (e) =>
            {
-               User user = _client.GetServer(e.Server.Id).GetUser(e.Server.Owner.Id);
+               string userName = (e.Server.Owner.Nickname != null) ? e.User.Nickname : e.User.Name;
 
-               await e.Channel.SendMessage("hi " + user.Nickname + " <3");
+               await e.Channel.SendMessage("hi " + userName + " <3");
            });
 
 
-        //server owner goodbye
+        //server owner goodbye command
         commands.CreateCommand("bye")
           .Description("Says bye to server owner")
           .Do(async (e) =>
           {
-              User user = _client.GetServer(e.Server.Id).GetUser(e.Server.Owner.Id);
+              string userName = (e.Server.Owner.Nickname != null) ? e.User.Nickname : e.User.Name;
 
-              await e.Channel.SendMessage("goodbye " + user.Nickname + " <3");
+              await e.Channel.SendMessage("goodbye " + userName + " <3");
           });
 
 
@@ -220,9 +220,21 @@ public class CoreBot
         {
             string message;
             if((e.Server.Owner.Id == e.Message.User.Id) && e.Message.RawText.Contains("\\<3"))
-            //if (e.Message.RawText.Contains("\\<3"))
             {
                 message = "<3";
+
+                await e.Channel.SendMessage(message);
+            }
+        };
+
+
+        //merk fair desu
+        _client.MessageReceived += async (s, e) =>
+        {
+            string message = "fair";
+            if (e.Message.User.Name.Contains("Merk") && e.Message.RawText.Contains("fair"))
+            {
+                message += " desu";
 
                 await e.Channel.SendMessage(message);
             }
@@ -242,7 +254,7 @@ public class CoreBot
         };
 
 
-        //dice roll
+        //dice roll command
         commands.CreateCommand("roll")
             .Description("rolls a 6 sided dice")
             .Do(async (e) =>
@@ -253,7 +265,7 @@ public class CoreBot
             });
 
 
-        //random number
+        //random number command :^)
         commands.CreateCommand("random")
             .Description("generates a random number between 1 and 100")
             .Do(async (e) =>
@@ -261,6 +273,29 @@ public class CoreBot
                 int random = 4;
 
                 await e.Channel.SendMessage("Your random number is: " + random);
+            });
+
+
+        //send invite command
+        commands.CreateCommand("invite")
+            .Description("sends an invite for the bot")
+            .Do(async (e) =>
+            {
+                String inviteLink = "https://discordapp.com/oauth2/authorize?client_id=285402443041210368&permissions=2146958463&scope=bot";
+
+                await e.Channel.SendMessage("You can invite me from " + inviteLink + " <3");
+            });
+        
+        
+        //offline command
+        commands.CreateCommand("sleep")
+            .Description("puts bot to sleep - offline")
+            .Do(async (e) =>
+            {
+                string userName = (e.Server.Owner.Nickname != null) ? e.User.Nickname : e.User.Name;
+                await e.Channel.SendMessage("goodnight " + userName + " <3"); //inform user of shutting down
+
+                Stop();
             });
     }
 
@@ -271,6 +306,24 @@ public class CoreBot
     private void Log(object sender, LogMessageEventArgs e)
     {
         Console.WriteLine($"[{e.Severity}] [{e.Source}] { e.Message}");
+    }
+
+    /*
+     *  Util function for loading and parsing json (hopefully)
+     */
+     private string LoadJson(String filePath)
+    {
+        using (System.IO.StreamReader file = System.IO.File.OpenText(filePath))
+        using (var reader = new Newtonsoft.Json.JsonTextReader(file))
+        {
+            var jObject = (Newtonsoft.Json.Linq.JObject)Newtonsoft.Json.Linq.JToken.ReadFrom(reader);
+
+            var token = jObject.GetValue("token");
+
+            string stringToken = (string)token;
+
+            return stringToken;
+        }
     }
 
     /*
@@ -302,8 +355,24 @@ public class CoreBot
 
         _client.ExecuteAndWait(async () =>
         {
-            await _client.Connect("token",
-                TokenType.Bot);
+            try
+            {
+                string token = LoadJson("auth.json");
+                await _client.Connect(token, TokenType.Bot);
+            }
+            catch (System.IO.FileNotFoundException e)
+            {
+                Console.WriteLine("File not found: " + e.Message);
+            }
+        });
+    }
+
+    private void Stop()
+    {
+        _client.ExecuteAndWait(async () =>
+        {
+            await _client.GatewaySocket.Disconnect();
+            _client.Dispose();
         });
     }
 }
