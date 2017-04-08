@@ -304,7 +304,7 @@ public class CoreBot
             int random = rand.Next(options.Length);
             for (int i = 0; i < options.Length; i++)
             {
-               if(options[i].IndexOf("").Equals(0))
+               if(options[i].IndexOf(" ").Equals(0)) //if first char is space
                     options[i] = options[i].Remove(0, 1); //remove space before option text
                 if (options[i].LastIndexOf(" ").Equals(options[i].Length - 1)) //if last char is a space
                     options[i] = options[i].Remove(options[i].Length - 1, 1); //remove it
