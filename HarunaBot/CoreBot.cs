@@ -126,7 +126,7 @@ public class CoreBot
             });
 
 
-        //smug command
+        //sends smug image
         commands.CreateCommand("smug")
             .Do(async (e) =>
             {
@@ -137,7 +137,7 @@ public class CoreBot
             });
 
 
-        //selfie command
+        //sends selfie image
         commands.CreateCommand("selfie")
             .Do(async (e) =>
             {
@@ -148,7 +148,7 @@ public class CoreBot
             });
 
 
-        //idle text command
+        //sends idle text
         commands.CreateCommand("idle")
             .Do(async (e) =>
             {
@@ -159,7 +159,7 @@ public class CoreBot
             });
 
 
-        //delete messages command
+        //delete messages (100 at  a time)
         commands.CreateCommand("purge")
             .Do(async (e) =>
             {
@@ -215,7 +215,7 @@ public class CoreBot
           });
 
 
-        //<3
+        //replies to \<3 with <3
         _client.MessageReceived += async (s, e) =>
         {
             string message;
@@ -241,7 +241,7 @@ public class CoreBot
         };
 
 
-        //ayy lmao
+        //ayy lmao desu!
         _client.MessageReceived += async (s, e) =>
         {
             string message;
@@ -254,7 +254,7 @@ public class CoreBot
         };
 
 
-        //dice roll command
+        //6 sided dice roll
         commands.CreateCommand("roll")
             .Description("rolls a 6 sided dice")
             .Do(async (e) =>
@@ -265,7 +265,7 @@ public class CoreBot
             });
 
 
-        //random number command :^)
+        //random number :^)
         commands.CreateCommand("random")
             .Description("generates a random number between 1 and 100")
             .Do(async (e) =>
@@ -275,19 +275,52 @@ public class CoreBot
                 await e.Channel.SendMessage("Your random number is: " + random);
             });
 
-
-        //send invite command
-        commands.CreateCommand("invite")
-            .Description("sends an invite for the bot")
+        //flip coin
+        commands.CreateCommand("coin")
+            .Description("flips a coin")
             .Do(async (e) =>
             {
-                String inviteLink = "https://discordapp.com/oauth2/authorize?client_id=285402443041210368&permissions=2146958463&scope=bot";
+                int random = rand.Next(2);
+                string message = (random == 0) ? "heads" : "tails";
+
+                await e.Channel.SendMessage(e.Message.User.Mention + " I choose " + message + " desu!");
+            });
+
+        //pick an option from the list, separated by a "|"
+        _client.MessageReceived += async (s, e) =>
+        {
+            if (!e.Message.RawText.Contains("!pick") || e.Message.User.IsBot)
+                return;
+            //command format: !pick something | something else | something | something | something
+
+            string message = e.Message.RawText;
+            message = message.Remove(0, 5); //remove command from string
+            string[] options = message.Split('|');
+
+            int random = rand.Next(options.Length);
+            for (int i = 0; i < options.Length; i++)
+            {
+                options[i] = options[i].Remove(0, 1); //remove space before option text
+                if (options[i].LastIndexOf(" ").Equals(options[i].Length - 1)) //if last char is a space
+                    options[i] = options[i].Remove(options[i].Length - 1, 1); //remove it
+            }
+            string optionToSend = options[random];
+
+            await e.Channel.SendMessage(e.Message.User.Mention + " I choose " + optionToSend + " desu!");
+        };
+
+        //generates invite link invite
+        commands.CreateCommand("invite")
+            .Description("generates an invite link for the bot")
+            .Do(async (e) =>
+            {
+                string inviteLink = "https://discordapp.com/oauth2/authorize?client_id=285402443041210368&permissions=2146958463&scope=bot";
 
                 await e.Channel.SendMessage("You can invite me from " + inviteLink + " <3");
             });
         
         
-        //offline command
+        //puts bot offline
         commands.CreateCommand("sleep")
             .Description("puts bot to sleep - offline")
             .Do(async (e) =>
@@ -305,11 +338,11 @@ public class CoreBot
      */
     private void Log(object sender, LogMessageEventArgs e)
     {
-        Console.WriteLine($"[{e.Severity}] [{e.Source}] { e.Message}");
+        Console.WriteLine($"[{e.Severity}] [{e.Source}] { e.Message }");
     }
 
     /*
-     *  Util function for loading and parsing json (hopefully)
+     *  Util function for loading and parsing json
      */
      private string LoadJson(String filePath)
     {
