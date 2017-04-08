@@ -294,13 +294,18 @@ public class CoreBot
             //command format: !pick something | something else | something | something | something
 
             string message = e.Message.RawText;
+
+            if (message.Contains("!pick") && !message.Contains("|"))
+                await e.Channel.SendMessage("that is not the correct format for the command, desu!");
+
             message = message.Remove(0, 5); //remove command from string
             string[] options = message.Split('|');
 
             int random = rand.Next(options.Length);
             for (int i = 0; i < options.Length; i++)
             {
-                options[i] = options[i].Remove(0, 1); //remove space before option text
+               if(options[i].IndexOf("").Equals(0))
+                    options[i] = options[i].Remove(0, 1); //remove space before option text
                 if (options[i].LastIndexOf(" ").Equals(options[i].Length - 1)) //if last char is a space
                     options[i] = options[i].Remove(options[i].Length - 1, 1); //remove it
             }
