@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
@@ -388,7 +384,7 @@ public class CoreBot
     /*
      *  Util function for loading and parsing json
      */
-     private string LoadJson(String filePath)
+     private string LoadJson(string filePath)
     {
         using (System.IO.StreamReader file = System.IO.File.OpenText(filePath))
         using (var reader = new Newtonsoft.Json.JsonTextReader(file))
