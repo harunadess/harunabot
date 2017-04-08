@@ -24,9 +24,26 @@ public class CoreBot
         //random number generator
         rand = new Random();
 
-        //store of pout paths
+        //set up pout paths
+        setUpPouts();
+
+        //set up smug paths
+        setUpSmugs();
+
+        //set up selfie paths
+        setUpSelfies();
+
+        //set up idle texts 
+        setUpIdles();
+	}
+
+    /*
+     * Sets up file locations for pout images
+     */
+    private void setUpPouts()
+    {
         pouts = new string[]
-        {
+       {
             "pouts/pout1.png", "pouts/pout2.png",
             "pouts/pout3.png", "pouts/pout4.png",
             "pouts/pout5.png", "pouts/pout6.png",
@@ -34,11 +51,17 @@ public class CoreBot
             "pouts/pout9.png", "pouts/pout10.gif",
             "pouts/pout11.gif", "pouts/pout12.png",
             "pouts/pout13.png"
-        };
+       };
+    }
 
-        //store of smug paths
+
+    /*
+     * Sets up file locations for smug images
+     */
+    private void setUpSmugs()
+    {
         smugs = new string[]
-        {
+       {
             "smugs/smug1.png", "smugs/smug2.png",
             "smugs/smug3.png", "smugs/smug4.png",
             "smugs/smug5.png", "smugs/smug6.png",
@@ -46,9 +69,15 @@ public class CoreBot
             "smugs/smug9.png", "smugs/smug10.png",
             "smugs/smug11.png", "smugs/smug12.png",
             "smugs/smug13.png",
-        };
+       };
+    }
 
-        //store of selfie paths
+    
+    /*
+     * Sets up file locations for selfie images
+     */
+    private void setUpSelfies()
+    {
         selfies = new string[]
         {
             "selfies/selfie1.png", "selfies/selfie2.png", "selfies/selfie3.png", "selfies/selfie4.png",
@@ -97,8 +126,14 @@ public class CoreBot
             "selfies/selfie173.png", "selfies/selfie174.png", "selfies/selfie175.png", "selfies/selfie176.png",
             "selfies/selfie177.png",
         };
+    }
 
-        //store of idle texts 
+
+    /*
+     * Sets up idle text array
+     */
+    private void setUpIdles()
+    {
         idleTexts = new string[]
         {
             "Yes, if you're fine with Haruna, I'll be your partner any time.",
@@ -107,8 +142,8 @@ public class CoreBot
             "Haruna, accepting orders to standby..",
             "Daijoubou Desu!"
         };
+    }
 
-	}
 
     /*
      *  Registers all active commands for HarunaBot
@@ -275,6 +310,7 @@ public class CoreBot
                 await e.Channel.SendMessage("Your random number is: " + random);
             });
 
+
         //flip coin
         commands.CreateCommand("coin")
             .Description("flips a coin")
@@ -285,6 +321,7 @@ public class CoreBot
 
                 await e.Channel.SendMessage(e.Message.User.Mention + " I choose " + message + " desu!");
             });
+
 
         //pick an option from the list, separated by a "|"
         _client.MessageReceived += async (s, e) =>
@@ -299,7 +336,7 @@ public class CoreBot
                 await e.Channel.SendMessage("that is not the correct format for the command, desu!");
 
             message = message.Remove(0, 5); //remove command from string
-            string[] options = message.Split('|');
+            string[] options = message.Split('|'); //split into options based on char '|'
 
             int random = rand.Next(options.Length);
             for (int i = 0; i < options.Length; i++)
@@ -314,6 +351,7 @@ public class CoreBot
             await e.Channel.SendMessage(e.Message.User.Mention + " I choose " + optionToSend + " desu!");
         };
 
+
         //generates invite link invite
         commands.CreateCommand("invite")
             .Description("generates an invite link for the bot")
@@ -325,7 +363,7 @@ public class CoreBot
             });
         
         
-        //puts bot offline
+        //bot offline
         commands.CreateCommand("sleep")
             .Description("puts bot to sleep - offline")
             .Do(async (e) =>
@@ -346,6 +384,7 @@ public class CoreBot
         Console.WriteLine($"[{e.Severity}] [{e.Source}] { e.Message }");
     }
 
+
     /*
      *  Util function for loading and parsing json
      */
@@ -355,14 +394,13 @@ public class CoreBot
         using (var reader = new Newtonsoft.Json.JsonTextReader(file))
         {
             var jObject = (Newtonsoft.Json.Linq.JObject)Newtonsoft.Json.Linq.JToken.ReadFrom(reader);
-
             var token = jObject.GetValue("token");
-
             string stringToken = (string)token;
 
             return stringToken;
         }
     }
+
 
     /*
      * Non-static method that starts the bot
@@ -378,16 +416,14 @@ public class CoreBot
             x.LogLevel = LogSeverity.Info;
             x.LogHandler = Log;
         });
-
         _client.UsingCommands(x =>
         {
             x.PrefixChar = '!';
             x.AllowMentionPrefix = true;
             x.HelpMode = HelpMode.Public;
         });
-
         commands = _client.GetService<CommandService>();
-
+       
         //register commands
         RegisterCommands();
 
@@ -405,6 +441,11 @@ public class CoreBot
         });
     }
 
+    /*
+     * Method that is called when the !sleep command 
+     * is used. Disconnects client from gateway socket
+     * and disposes of client resources.
+     */
     private void Stop()
     {
         _client.ExecuteAndWait(async () =>
